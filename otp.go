@@ -52,7 +52,7 @@ func (h *HOTP) Hash() crypto.Hash {
 }
 
 func (h *HOTP) GenerateCode(key string, count int64, tokenLen int) (string, error) {
-	b, err := base32.StdEncoding.DecodeString(key)
+	b, err := base32.StdEncoding.DecodeString(strings.ToUpper(key))
 
 	if err != nil {
 		return "", err
@@ -101,7 +101,9 @@ func truncate(b []byte) int {
 
 func genKey(hasher crypto.Hash, key []byte, count int64) []byte {
 	hmacHash := hmac.New(hasher.New, key)
-	binary.Write(hmacHash, binary.BigEndian, count)
+	encoded := make([]byte, 8)
+	binary.BigEndian.PutUint64(encoded, uint64(count))
+	hmacHash.Write(encoded)
 	return hmacHash.Sum(nil)
 }
 
